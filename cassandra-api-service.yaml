@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: cassandra-api
+  labels:
+    name: cassandra-api
+spec:
+  ports:
+  - port: 80
+    targetPort: 5000
+  clusterIP: None
+  selector:
+    app: cassandra-api
