@@ -15,9 +15,9 @@ env:
     - PROJECT_NAME_PRD=spy-crowd
     - CLUSTER_NAME_PRD=europe-cluster
     - CLOUDSDK_COMPUTE_ZONE=europe-west1-b
-    - DOCKER_IMAGE_NAME=mongo-api
-    - KUBE_DEPLOYMENT_NAME=mongo-api
-    - KUBE_DEPLOYMENT_CONTAINER_NAME=mongo-api
+    - DOCKER_IMAGE_NAME=cassandra-api
+    - KUBE_DEPLOYMENT_NAME=cassandra-api
+    - KUBE_DEPLOYMENT_CONTAINER_NAME=cassandra-api
 
 before_deploy:
   - if [ ! -d "$HOME/google-cloud-sdk/bin" ]; then rm -rf $HOME/google-cloud-sdk; export CLOUDSDK_CORE_DISABLE_PROMPTS=1; curl https://sdk.cloud.google.com | bash; fi
