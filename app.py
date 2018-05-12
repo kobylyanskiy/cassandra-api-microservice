@@ -5,7 +5,11 @@ from cassandra.query import SimpleStatement, dict_factory
 import cassandra
 
 def cassandra_connection():
-    clusterr = cassandra.cluster.Cluster()
+    clusterr = cassandra.cluster.Cluster([
+        'cassandra-0.cassandra.default.svc.cluster.local',
+        'cassandra-1.cassandra.default.svc.cluster.local',
+        'cassandra-2.cassandra.default.svc.cluster.local'
+    ])
     return clusterr.connect()
 
 cass_app = Flask(__name__)
