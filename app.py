@@ -1,49 +1,104 @@
 import json
 from flask import Flask, request
-from cassandra.query import SimpleStatement
 from cassandra.cluster import Cluster
-
-
-app = Flask(__name__)
-
+from cassandra.query import SimpleStatement, dict_factory
+import cassandra
 
 def cassandra_connection():
-    cluster = Cluster(['cassandra-0.cassandra.default.svc.cluster.local'])
-    return cluster.connect()
+    clusterr = cassandra.cluster.Cluster()
+    return clusterr.connect()
 
+cass_app = Flask(__name__)
+session = cassandra_connection()
 
-@app.route('/operations', methods=['GET', 'POST'])
+session.execute("""
+        CREATE KEYSPACE IF NOT EXISTS operations
+        WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
+        """)
+
+session.set_keyspace('operations')
+
+session.row_factory = dict_factory
+
+@cass_app.route('/operations', methods=['GET', 'POST'])
 def operations():
     if request.method == 'POST':
-        operation = request.get_json(silent=True)
+        operation = request.get_json(force=True)
         print(operation)
-        return json.dumps({
-            'result': True,
-        })
+
+
+        query = SimpleStatement(
+        """
+        INSERT INTO operation(codename, location, date_start, date_end,
+        operation_type, difficulty, status, costs, agents, target)
+        VALUES (%(codename)s, %(location)s, %(date_start)s, %(date_end)s, %(operation_type)s, %(difficulty)s, %(status)s, %(costs)s, %(agents)s, %(target)s)
+        """)
+        try:
+            session.execute(query,operation)    
+            return json.dumps({
+                'result': True,
+            })
+        except Exception:
+            return json.dumps({
+                'result': False,
+                'error_msg' : 'Insert operation went wrong, check the arguments'
+            })            
     else:
-        return json.dumps({
-            'result': True,
-            'data': [],
-        })
+        result = {}
+        try:
+            rows = session.execute("SELECT * FROM operation")
+            for user_row in rows:
+                result[user_row['codename']] = user_row    
+            return json.dumps(result)
+        except Exception:
+            return json.dumps({
+                'result': False,
+                'error_msg' : 'It is a DB problem, check the 'operation' table'
+            })   
 
 
-@app.route('/operation/<string:codename>', methods=['GET'])
+@cass_app.route('/operations/<string:codename>', methods=['GET', 'POST'])
 def get_agent(codename):
-    return json.dumps({
-        'result': True,
-        'operation': {'codename': 'codename'}
-    })
+    if request.method == 'POST':
+        operation = request.get_json(force=True)
+        print(operation)
+        try:        
+            session.execute(
+            """
+            UPDATE operation
+            SET date_end = %s, status = %s, costs = %s
+            WHERE codename = %s
+            """,
+            (operation['date_end'], operation['status'], operation['costs'], codename)
+            )
+            return json.dumps({
+                'result': True,
+            })
+        except Exception:
+            return json.dumps({
+                'result': False,
+                'error_msg' : 'Update operation went wrong, check the arguments'                
+            })
+    else:
+        print(codename)
+        try:
+            row = session.execute(
+            """
+            SELECT * FROM operation
+            WHERE codename = %s 
+            """, 
+            (codename,)
+            )
+            return json.dumps(row[0])
+        except Exception:
+            return json.dumps({
+                'result': False,
+                'error_msg' : 'Select operation went wrong, check the operation codename'                
+            })            
 
 
-sess = cassandra_connection()
-sess.execute(
-    """
-    CREATE KEYSPACE IF NOT EXISTS operation_log
-    WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
-    """
-)
-sess.set_keyspace('operation_log')
+
 
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0')
+    cass_app.run(host='0.0.0.0', port=6000)
