@@ -28,7 +28,7 @@ before_deploy:
 
 deploy:
   - provider: script
-    script: ./update-service.sh v0.9.6.12
+    script: ./update-service.sh v0.9.6.13
     skip_cleanup: true
     on:
       branch: master

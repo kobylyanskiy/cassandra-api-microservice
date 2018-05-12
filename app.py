@@ -105,7 +105,7 @@ def get_agent(codename):
 
 
 if __name__ == '__main__':
-    sess.execute("""
+    session.execute("""
         CREATE TABLE operation(
             codename text,
             location text,
