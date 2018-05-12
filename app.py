@@ -105,4 +105,18 @@ def get_agent(codename):
 
 
 if __name__ == '__main__':
+    sess.execute("""
+        CREATE TABLE operation(
+            codename text,
+            location text,
+            date_start text,
+            date_end text,
+            operation_type text,
+            difficulty int,
+            status text,
+            costs int,
+            agents list<text>,
+            target list<text>,
+            PRIMARY KEY (codename))
+        """)
     cass_app.run(host='0.0.0.0', port=5000)
