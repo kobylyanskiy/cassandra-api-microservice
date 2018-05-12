@@ -57,7 +57,7 @@ def operations():
         except Exception:
             return json.dumps({
                 'result': False,
-                'error_msg' : 'It is a DB problem, check the 'operation' table'
+                'error_msg' : 'It is a DB problem, check the operation table'
             })   
 
 
