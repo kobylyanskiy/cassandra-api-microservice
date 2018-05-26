@@ -14,6 +14,12 @@ def cassandra_connection():
 
 cass_app = Flask(__name__)
 session = cassandra_connection()
+session.execute("""
+        CREATE KEYSPACE IF NOT EXISTS operations
+        WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
+        """)
+
+session.set_keyspace('operations')
 
 
 @cass_app.route('/operations', methods=['GET', 'POST'])
