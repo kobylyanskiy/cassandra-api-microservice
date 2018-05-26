@@ -15,14 +15,6 @@ def cassandra_connection():
 cass_app = Flask(__name__)
 session = cassandra_connection()
 
-session.execute("""
-        CREATE KEYSPACE IF NOT EXISTS operations
-        WITH replication = { 'class': 'SimpleStrategy', 'replication_factor': '2' }
-        """)
-
-session.set_keyspace('operations')
-
-session.row_factory = dict_factory
 
 @cass_app.route('/operations', methods=['GET', 'POST'])
 def operations():
@@ -105,18 +97,4 @@ def get_agent(codename):
 
 
 if __name__ == '__main__':
-    session.execute("""
-        CREATE TABLE operation(
-            codename text,
-            location text,
-            date_start text,
-            date_end text,
-            operation_type text,
-            difficulty int,
-            status text,
-            costs int,
-            agents list<text>,
-            target list<text>,
-            PRIMARY KEY (codename))
-        """)
     cass_app.run(host='0.0.0.0', port=5000)
